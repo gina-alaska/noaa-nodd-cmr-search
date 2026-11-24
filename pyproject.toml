@@ -11,4 +11,5 @@ dependencies = [
     "h5py>=3.16.0",
     "requests>=2.34.2",
     "s3fs>=2026.9.0",
+    "shapely>=2.2.0",
 ]

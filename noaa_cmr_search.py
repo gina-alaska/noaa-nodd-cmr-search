@@ -826,7 +826,13 @@ def main() -> None:
     parser.add_argument("--end", required=True, help="UTC, e.g. 2026-10-02T00:00")
     parser.add_argument("--provider", choices=BUCKETS, default="gcs")
     parser.add_argument(
-        "--sat", nargs="+", choices=list(CMR_SHORT_NAME), default=["n20"]
+        "--sat",
+        nargs="+",
+        type=str.lower,
+        choices=list(CMR_SHORT_NAME),
+        default=["n20"],
+        metavar="SAT",
+        help=f"One or more of: {', '.join(CMR_SHORT_NAME)} (default: %(default)s)",
     )
     parser.add_argument(
         "--pad",

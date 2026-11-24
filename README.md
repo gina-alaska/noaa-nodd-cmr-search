@@ -1,3 +1,18 @@
+Search NASA CMR and NOAA cloud storage for VIIRS satellite granules.
+
+Query NASA CMR for geolocation granules over a bounding box and time range,
+then find matching data granules on NOAA mirrors (AWS S3, Google Cloud, Azure).
+
+## Quick Install
+
+```
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+## Usage
+
 ```
 python noaa_cmr_search.py --help
 usage: noaa_cmr_search.py [-h] [--products PRODUCT [PRODUCT ...]] --bbox W S E N --start START --end END [--provider {aws,gcs,azure}] [--sat {n20,n21,snpp} [{n20,n21,snpp} ...]]
