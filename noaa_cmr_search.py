@@ -1,35 +1,33 @@
 #!/usr/bin/env python3
-"""Find NOAA VIIRS I-band GEO (GITCO) granules over a bounding box and time range.
+"""Search NASA CMR and NOAA cloud storage for VIIRS satellite granules.
 
-Step 1: ask NASA CMR which 6-minute VIIRS geolocation granules touch the bbox.
-Step 2: list the NOAA mirror (AWS / Google / Azure) for those days and keep the
-        ~86 s NOAA granules whose times overlap a NASA hit.
+Query NASA CMR for geolocation granules over a bounding box and time range,
+then find matching data granules on NOAA mirrors (AWS S3, Google Cloud, Azure).
 
-Examples:
-  python viirs_geo_search.py --bbox -170 51 -130 72 \
+Usage:
+  python noaa_cmr_search.py --bbox -170 51 -130 72 \\
       --start 2026-10-01T00:00 --end 2026-10-02T00:00
-  python viirs_geo_search.py --bbox -170 51 -130 72 --start 2026-10-01 \
-      --end 2026-10-02 --provider gcs --sat n21 --format key
+  python noaa_cmr_search.py --bbox -170 51 -130 72 --start 2026-10-01 \\
+      --end 2026-10-02 --provider gcs --sat n21 --download /path/to/dir
 
-Requires: requests, plus s3fs (aws), gcsfs (gcs) or adlfs (azure).
+Requires: requests, s3fs (aws), gcsfs (gcs), or adlfs (azure) for cloud access.
+    For refining passes (NASA granules are 6 minutes vs. NOAA's 85 seconds, so some NOAA granules will be outside bounds),
+    requires h5py, shapely, antimeridian.
 """
 import argparse
 import datetime as dt
 import re
-import sys
 from collections import defaultdict
 import numpy as np
 import logging
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import requests
-import h5py
-from shapely.validation import explain_validity
-from shapely.geometry import box, Polygon
-from shapely.affinity import translate
-from shapely.ops import unary_union
-import antimeridian
+
+if TYPE_CHECKING:
+    from shapely.geometry import Polygon
 
 log = logging.getLogger("viirs_search")
 log.setLevel(logging.INFO)
@@ -404,6 +402,12 @@ def ring_to_geometry(lon: np.ndarray, lat: np.ndarray) -> Polygon:
         ValueError: If fewer than 4 valid points remain after filtering, or if
                    the resulting polygon is invalid
     """
+    from shapely.geometry import box, Polygon
+    import antimeridian
+    from shapely.affinity import translate
+    from shapely.validation import explain_validity
+    from shapely.ops import unary_union
+    
     ok = (lat >= -90) & (lat <= 90) & (lon >= -180) & (lon <= 180)
     lat, lon = lat[ok].astype("float64"), lon[ok].astype("float64")
     if lat.size < 4:
@@ -443,6 +447,7 @@ def granule_ring(fs, geo_key: str, g_ring_loc: str) -> tuple[np.ndarray, np.ndar
     Returns:
         Tuple of (lon, lat) numpy arrays forming a closed ring
     """
+    import h5py
     with fs.open(geo_key, "rb", block_size=256 * 1024, cache_type="blockcache", cache_options={"maxblocks": 32}) as f:
         with h5py.File(f, "r") as h5:
             gran = h5[g_ring_loc]
@@ -516,6 +521,8 @@ def bbox_polygon(w: float, s: float, e: float, n: float) -> Polygon:
     Returns:
         Shapely Polygon representing the bbox
     """
+    from shapely.geometry import box, Polygon
+    from shapely.ops import unary_union
     if w > e:  # crosses the antimeridian
         return unary_union([box(w, s, 180, n), box(-180, s, e, n)])
     return box(w, s, e, n)
