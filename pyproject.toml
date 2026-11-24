@@ -1,0 +1,14 @@
+[project]
+name = "nodd-cmr-search"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "adlfs>=2026.8.0",
+    "antimeridian>=0.5.0",
+    "gcsfs>=2026.10.1",
+    "h5py>=3.16.0",
+    "requests>=2.34.2",
+    "s3fs>=2026.9.0",
+]
