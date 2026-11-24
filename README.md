@@ -41,7 +41,7 @@ options:
   --start START         UTC, e.g. 2026-10-01T00:00
   --end END             UTC, e.g. 2026-10-02T00:00
   --provider {aws,gcs,azure}
-  --sat {n20,n21,snpp} [{n20,n21,snpp} ...]
+  --sat SAT [SAT ...]   One or more of: n20, n21, snpp (default: ['n20'])
   --pad PAD             seconds of slack when matching NASA to NOAA granules (default 60)
   --format {url,key}    url = scheme://bucket/key (default), key = bucket/key
   --no-refine           Skip trimming passes to the bbox
