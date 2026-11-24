@@ -25,6 +25,7 @@ import logging
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
+from pprint import pformat
 
 import requests
 
@@ -746,8 +747,11 @@ def noaa_cmr_search(
             log.info(f"  Organized into {len(passes)} satellite passes")
 
             refined_pass_info = []
-            for k, v in passes.items():
+            for index, (k, v) in enumerate(passes.items(), start=1):
                 if refine:
+                    log.info(
+                        f"    {index}/{len(passes)}: Refining geometry to clip out excess granules..."
+                    )
                     v = refine_pass(
                         fs, v, bbox_polygon(*bbox), G_RING_LOCS[geo_product_type]
                     )
@@ -863,7 +867,7 @@ def main() -> None:
     )
 
     # Print results summary
-    log.info(f"Results: {results}")
+    log.info("Results:\n%s", pformat(results, width=100, sort_dicts=False))
 
 
 if __name__ == "__main__":
